@@ -42,29 +42,48 @@ function ArrowIcon() {
 export default function Login() {
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(
+    localStorage.getItem("rememberedEmail") || ""
+  );
+
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
+
+  const [rememberMe, setRememberMe] = useState(
+    !!localStorage.getItem("rememberedEmail")
+  );
+
+  const [error, setError] = useState("");
 
   const handleLogin = (e) => {
     e.preventDefault();
+    setError("");
 
     if (!email.trim() || !password.trim()) {
-      alert("Please enter email and password");
+      setError("Please enter email and password.");
       return;
     }
 
-    // Add your actual authentication API validation here.
-    // This example only checks that both fields are filled.
-
+    // Remember email
     if (rememberMe) {
-      localStorage.setItem("rememberedEmail", email);
+      localStorage.setItem("rememberedEmail", email.trim());
     } else {
       localStorage.removeItem("rememberedEmail");
     }
 
-    navigate("/", { replace: true });
+    // Frontend login placeholder
+    // Replace with authentication API validation when available.
+    localStorage.setItem("authToken", "logged-in");
+
+    // Redirect to Dashboard with Sidebar
+    navigate("/dashboard", { replace: true });
+  };
+
+  const handleForgotPassword = (e) => {
+    e.preventDefault();
+    alert(
+      "Please contact your administrator to reset your password."
+    );
   };
 
   return (
@@ -127,7 +146,10 @@ export default function Login() {
                   type="email"
                   placeholder="Enter your email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setError("");
+                  }}
                   autoComplete="email"
                   required
                 />
@@ -148,14 +170,19 @@ export default function Login() {
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setError("");
+                  }}
                   autoComplete="current-password"
                   required
                 />
 
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() =>
+                    setShowPassword((prev) => !prev)
+                  }
                   className="password-toggle"
                   aria-label={
                     showPassword ? "Hide password" : "Show password"
@@ -166,26 +193,41 @@ export default function Login() {
               </div>
             </div>
 
+            {/* ERROR MESSAGE */}
+            {error && (
+              <p
+                role="alert"
+                style={{
+                  color: "#dc2626",
+                  fontSize: "13px",
+                  margin: "0"
+                }}
+              >
+                {error}
+              </p>
+            )}
+
             {/* OPTIONS */}
             <div className="form-options">
+
               <label>
                 <input
                   type="checkbox"
                   checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
+                  onChange={(e) =>
+                    setRememberMe(e.target.checked)
+                  }
                 />
                 Remember me
               </label>
 
               <a
                 href="#forgot-password"
-                onClick={(e) => {
-                  e.preventDefault();
-                  alert("Please contact your administrator to reset your password.");
-                }}
+                onClick={handleForgotPassword}
               >
                 Forgot password?
               </a>
+
             </div>
 
             {/* LOGIN BUTTON */}

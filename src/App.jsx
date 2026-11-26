@@ -18,6 +18,14 @@ import Login from "./pages/Login";
 
 import "./App.css";
 
+// Protect dashboard routes
+function ProtectedRoute({ children }) {
+  const authToken = localStorage.getItem("authToken");
+
+  return authToken ? children : <Navigate to="/login" replace />;
+}
+
+// Main application with Sidebar
 function MainApp() {
   const [activeMenu, setActiveMenu] = useState("Dashboard");
   const navigate = useNavigate();
@@ -31,6 +39,7 @@ function MainApp() {
 
   return (
     <div className="app-layout">
+
       <Sidebar
         activeMenu={activeMenu}
         onMenuClick={setActiveMenu}
@@ -38,6 +47,7 @@ function MainApp() {
       />
 
       <main className="app-main">
+
         {activeMenu === "Dashboard" && <Dashboard />}
         {activeMenu === "Timesheet" && <Timesheet />}
         {activeMenu === "Apply Leave" && <ApplyLeave />}
@@ -56,23 +66,50 @@ function MainApp() {
             <p>This section is ready for implementation.</p>
           </div>
         )}
+
       </main>
     </div>
   );
 }
 
+// Application routes
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<Login />} />
 
-        <Route path="/" element={<MainApp />} />
+        {/* Default Login Page */}
+        <Route
+          path="/"
+          element={<Navigate to="/login" replace />}
+        />
 
+        {/* Login */}
+        <Route
+          path="/login"
+          element={
+            localStorage.getItem("authToken")
+              ? <Navigate to="/dashboard" replace />
+              : <Login />
+          }
+        />
+
+        {/* Protected Dashboard + Sidebar */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <MainApp />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Invalid routes */}
         <Route
           path="*"
-          element={<Navigate to="/" replace />}
+          element={<Navigate to="/login" replace />}
         />
+
       </Routes>
     </BrowserRouter>
   );
