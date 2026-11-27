@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
 
+// Icons
 function MailIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -39,6 +40,71 @@ function ArrowIcon() {
   );
 }
 
+// Demo employee data
+// Replace with your backend authentication API.
+const employees = [
+  {
+    id: "EMP001",
+    name: "Hareesh Paladi",
+    email: "hareesh@worksync.com",
+    password: "123456",
+    department: "IT",
+    designation: "Java Developer",
+    role: "EMPLOYEE",
+    joiningDate: "2022-06-14",
+    leaveBalance: {
+      annual: 12,
+      sick: 6,
+      casual: 6
+    }
+  },
+  {
+    id: "EMP002",
+    name: "Rahul Kumar",
+    email: "rahul@worksync.com",
+    password: "123456",
+    department: "Human Resources",
+    designation: "HR Executive",
+    role: "EMPLOYEE",
+    joiningDate: "2023-02-10",
+    leaveBalance: {
+      annual: 15,
+      sick: 6,
+      casual: 5
+    }
+  },
+  {
+    id: "EMP003",
+    name: "Priya Sharma",
+    email: "priya@worksync.com",
+    password: "123456",
+    department: "Finance",
+    designation: "Accountant",
+    role: "EMPLOYEE",
+    joiningDate: "2024-01-15",
+    leaveBalance: {
+      annual: 10,
+      sick: 6,
+      casual: 4
+    }
+  },
+  {
+    id: "ADM001",
+    name: "Admin",
+    email: "admin@worksync.com",
+    password: "123456",
+    department: "Administration",
+    designation: "Administrator",
+    role: "ADMIN",
+    joiningDate: "2022-01-01",
+    leaveBalance: {
+      annual: 0,
+      sick: 0,
+      casual: 0
+    }
+  }
+];
+
 export default function Login() {
   const navigate = useNavigate();
 
@@ -54,42 +120,68 @@ export default function Login() {
   );
 
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = (e) => {
     e.preventDefault();
     setError("");
 
     if (!email.trim() || !password.trim()) {
-      setError("Please enter email and password.");
+      setError("Please enter your email and password.");
       return;
     }
 
-    // Remember email
+    setLoading(true);
+
+    const employee = employees.find(
+      (item) =>
+        item.email.toLowerCase() === email.trim().toLowerCase() &&
+        item.password === password
+    );
+
+    if (!employee) {
+      setLoading(false);
+      setError("Invalid email address or password.");
+      return;
+    }
+
     if (rememberMe) {
       localStorage.setItem("rememberedEmail", email.trim());
     } else {
       localStorage.removeItem("rememberedEmail");
     }
 
-    // Frontend login placeholder
-    // Replace with authentication API validation when available.
+    const employeeDetails = {
+      employeeId: employee.id,
+      employeeName: employee.name,
+      email: employee.email,
+      department: employee.department,
+      designation: employee.designation,
+      role: employee.role,
+      joiningDate: employee.joiningDate,
+      leaveBalance: employee.leaveBalance
+    };
+
+    localStorage.setItem(
+      "currentEmployee",
+      JSON.stringify(employeeDetails)
+    );
+
+    // Frontend demo token only
     localStorage.setItem("authToken", "logged-in");
 
-    // Redirect to Dashboard with Sidebar
     navigate("/dashboard", { replace: true });
   };
 
   const handleForgotPassword = (e) => {
     e.preventDefault();
-    alert(
-      "Please contact your administrator to reset your password."
-    );
+    alert("Please contact your administrator to reset your password.");
   };
 
   return (
     <main className="login-page">
 
-      {/* LEFT BRAND SECTION */}
+      {/* LEFT BRAND PANEL */}
       <section className="brand-panel">
         <div className="brand-content">
 
@@ -97,46 +189,64 @@ export default function Login() {
             <span>WorkSync</span>
           </div>
 
+          <div className="brand-tagline">
+            EMPLOYEE EXPERIENCE PLATFORM
+          </div>
+
           <h1>
-            Manage your leaves.
-            <span> Enjoy your time.</span>
+            Work smarter.
+            <span> Live better.</span>
           </h1>
 
           <p className="brand-description">
-            A smarter way to manage employee leave requests,
-            approvals and workplace schedules.
+            One simple platform to manage employee leaves,
+            timesheets, approvals and workplace schedules.
+            Stay connected, organized and productive.
           </p>
 
           <div className="quote-card">
             <p>
-              "Simple leave management for a happier workplace."
+              "Your work. Your time. Your workplace.
+              Everything in sync."
             </p>
 
             <p className="quote-caption">
-              Employee Experience Platform
+              WorkSync Employee Portal
             </p>
+          </div>
+
+          <div className="brand-features">
+            <div>
+              <span>✓</span> Leave Management
+            </div>
+            <div>
+              <span>✓</span> Smart Timesheets
+            </div>
+            <div>
+              <span>✓</span> Employee Self Service
+            </div>
           </div>
 
         </div>
       </section>
 
-      {/* RIGHT LOGIN SECTION */}
+      {/* RIGHT LOGIN PANEL */}
       <section className="login-panel">
         <div className="login-card">
 
-          <h2>Welcome back!</h2>
+          <div className="login-heading">
+            <h2>Welcome back!</h2>
 
-          <p className="login-subtitle">
-            Sign in to access your leave management portal.
-          </p>
+            <p className="login-subtitle">
+              Sign in to your WorkSync employee account.
+            </p>
+          </div>
 
           <form onSubmit={handleLogin} className="login-form">
 
             {/* EMAIL */}
             <div className="form-field">
-              <label htmlFor="email">
-                Email Address
-              </label>
+              <label htmlFor="email">Email Address</label>
 
               <div className="input-wrap">
                 <MailIcon />
@@ -144,13 +254,13 @@ export default function Login() {
                 <input
                   id="email"
                   type="email"
-                  placeholder="Enter your email"
+                  placeholder="Enter your work email"
                   value={email}
                   onChange={(e) => {
                     setEmail(e.target.value);
                     setError("");
                   }}
-                  autoComplete="email"
+                  autoComplete="username"
                   required
                 />
               </div>
@@ -158,9 +268,7 @@ export default function Login() {
 
             {/* PASSWORD */}
             <div className="form-field">
-              <label htmlFor="password">
-                Password
-              </label>
+              <label htmlFor="password">Password</label>
 
               <div className="input-wrap">
                 <LockIcon />
@@ -180,10 +288,8 @@ export default function Login() {
 
                 <button
                   type="button"
-                  onClick={() =>
-                    setShowPassword((prev) => !prev)
-                  }
                   className="password-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
                   aria-label={
                     showPassword ? "Hide password" : "Show password"
                   }
@@ -193,16 +299,9 @@ export default function Login() {
               </div>
             </div>
 
-            {/* ERROR MESSAGE */}
+            {/* ERROR */}
             {error && (
-              <p
-                role="alert"
-                style={{
-                  color: "#dc2626",
-                  fontSize: "13px",
-                  margin: "0"
-                }}
-              >
+              <p className="login-error" role="alert">
                 {error}
               </p>
             )}
@@ -210,13 +309,11 @@ export default function Login() {
             {/* OPTIONS */}
             <div className="form-options">
 
-              <label>
+              <label className="remember-label">
                 <input
                   type="checkbox"
                   checked={rememberMe}
-                  onChange={(e) =>
-                    setRememberMe(e.target.checked)
-                  }
+                  onChange={(e) => setRememberMe(e.target.checked)}
                 />
                 Remember me
               </label>
@@ -234,19 +331,22 @@ export default function Login() {
             <button
               type="submit"
               className="submit-button"
+              disabled={loading}
             >
-              Sign In
-              <ArrowIcon />
+              {loading ? "Signing in..." : "Sign In"}
+              {!loading && <ArrowIcon />}
             </button>
 
           </form>
 
-          <p className="copyright">
-            © 2026 All rights reserved.
-          </p>
-
         </div>
       </section>
+
+      {/* FULL WIDTH FOOTER */}
+      <footer className="login-footer">
+        <p>© 2026 WorkSync. All rights reserved.</p>
+        <p>Designed for a smarter workplace.</p>
+      </footer>
 
     </main>
   );

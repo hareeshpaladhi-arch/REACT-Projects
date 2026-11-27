@@ -68,26 +68,30 @@ export default function Sidebar({
 
   const [profile, setProfile] = useState(getSavedProfile);
   const [formData, setFormData] = useState(profile);
+
   const [showProfile, setShowProfile] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
   const fileInputRef = useRef(null);
 
-  // Open profile popup
+  // OPEN PROFILE
   const openProfile = () => {
     setFormData(profile);
     setIsEditing(false);
     setShowProfile(true);
   };
 
-  // Close profile popup
+  // CLOSE PROFILE
   const closeProfile = () => {
     setShowProfile(false);
     setIsEditing(false);
     setFormData(profile);
   };
 
-  // Handle profile input changes
+  // PROFILE INPUT CHANGE
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -97,19 +101,21 @@ export default function Sidebar({
     }));
   };
 
-  // Handle profile photo upload
+  // PROFILE PHOTO UPLOAD
   const handlePhotoChange = (e) => {
     const file = e.target.files?.[0];
 
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      alert("Please select a valid image.");
+      window.alert("Please select a valid image.");
+      e.target.value = "";
       return;
     }
 
     if (file.size > 3 * 1024 * 1024) {
-      alert("Please select an image smaller than 3 MB.");
+      window.alert("Please select an image smaller than 3 MB.");
+      e.target.value = "";
       return;
     }
 
@@ -126,10 +132,10 @@ export default function Sidebar({
     e.target.value = "";
   };
 
-  // Save profile
+  // SAVE PROFILE
   const saveProfile = () => {
     if (!formData.name.trim() || !formData.email.trim()) {
-      alert("Name and email are required.");
+      window.alert("Name and email are required.");
       return;
     }
 
@@ -142,41 +148,54 @@ export default function Sidebar({
       setProfile(formData);
       setIsEditing(false);
 
-      alert("Profile updated successfully!");
+      window.alert("Profile updated successfully!");
     } catch {
-      alert(
+      window.alert(
         "Unable to save profile. Try using a smaller profile photo."
       );
     }
   };
 
-  // Cancel profile editing
+  // CANCEL PROFILE EDITING
   const cancelEditing = () => {
     setFormData(profile);
     setIsEditing(false);
   };
 
-  // Logout and redirect to Login.jsx
+  // OPEN LOGOUT CONFIRMATION
   const handleLogout = () => {
-    const confirmed = window.confirm(
-      "Are you sure you want to sign out?"
-    );
+    setShowLogoutConfirm(true);
+  };
 
-    if (!confirmed) return;
+  // CANCEL LOGOUT
+  const cancelLogout = () => {
+    setShowLogoutConfirm(false);
+  };
 
-    // Remove authentication data if present
+  // CONFIRM LOGOUT
+  const confirmLogout = () => {
+    if (isLoggingOut) return;
+
+    setIsLoggingOut(true);
+
+    // Clear authentication information
     localStorage.removeItem("authToken");
+    sessionStorage.clear();
 
-    // Call parent logout callback if provided
+    // Close popups
+    setShowProfile(false);
+    setShowLogoutConfirm(false);
+
+    // Notify parent component
     if (typeof onLogout === "function") {
       onLogout();
     }
 
-    // Navigate to existing Login component
+    // Redirect to Login page
     navigate("/login", { replace: true });
   };
 
-  // User initials
+  // USER INITIALS
   const displayName = profile.name || "Employee";
 
   const initials = displayName
@@ -187,7 +206,7 @@ export default function Sidebar({
     .join("")
     .toUpperCase();
 
-  // Profile fields
+  // PROFILE FIELDS
   const fields = [
     {
       label: "Full Name",
@@ -247,6 +266,7 @@ export default function Sidebar({
 
   return (
     <>
+      {/* SIDEBAR */}
       <aside className="sidebar">
 
         {/* BRAND */}
@@ -321,7 +341,7 @@ export default function Sidebar({
                 className={`sidebar-item ${
                   activeMenu === item.name ? "active" : ""
                 }`}
-                onClick={() => onMenuClick(item.name)}
+                onClick={() => onMenuClick?.(item.name)}
               >
                 <Icon size={19} />
                 <span>{item.name}</span>
@@ -561,6 +581,64 @@ export default function Sidebar({
           </section>
         </div>
       )}
+
+      {/* SIGN OUT CONFIRMATION MODAL */}
+      {showLogoutConfirm && (
+        <div
+          className="logout-modal-overlay"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) {
+              cancelLogout();
+            }
+          }}
+        >
+          <section
+            className="logout-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="logout-title"
+          >
+
+            {/* LOGOUT ICON */}
+            <div className="logout-icon-wrapper">
+              <LogOut size={27} />
+            </div>
+
+            {/* MESSAGE */}
+            <h2 id="logout-title">Sign Out?</h2>
+
+            <p>
+              Are you sure you want to sign out of your
+              WorkSync account?
+            </p>
+
+            {/* ACTION BUTTONS */}
+            <div className="logout-modal-actions">
+
+              <button
+                type="button"
+                className="logout-cancel-btn"
+                onClick={cancelLogout}
+                disabled={isLoggingOut}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                className="logout-confirm-btn"
+                onClick={confirmLogout}
+                disabled={isLoggingOut}
+              >
+                <LogOut size={16} />
+                Yes, Sign Out
+              </button>
+
+            </div>
+          </section>
+        </div>
+      )}
+
     </>
   );
 }
